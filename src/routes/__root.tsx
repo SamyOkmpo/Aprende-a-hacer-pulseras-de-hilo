@@ -45,14 +45,13 @@ const TABS = [
 ] as const
 
 function RootComponent() {
-  // Registro del service worker (solo en cliente).
+  // Registro del service worker (solo en cliente, solo en producción).
   useEffect(() => {
     if (import.meta.env.DEV) return
-    import('virtual:pwa-register')
-      .then(({ registerSW }) => registerSW({ immediate: true }))
-      .catch(() => {
-        /* PWA opcional: no romper si no está disponible */
-      })
+    if (!('serviceWorker' in navigator)) return
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* PWA opcional: no romper si el registro falla */
+    })
   }, [])
 
   return (

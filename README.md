@@ -79,19 +79,42 @@ anterior/siguiente, puntos de progreso y "repetir". Respeta
 
 ## PWA / offline
 
-- El manifest y el service worker los genera `vite-plugin-pwa` (Workbox).
-- Estrategia offline: `NetworkFirst` para páginas ya visitadas y
-  `StaleWhileRevalidate` para assets/media de Supabase → el contenido visto
-  queda disponible sin conexión.
-- El SW solo se registra en producción (`npm run build && npm run serve`).
+- El manifest (`public/manifest.webmanifest`) y el service worker
+  (`public/sw.js`) son estáticos y se copian tal cual al build. El SW se
+  registra en `src/routes/__root.tsx` (solo en producción).
+- Estrategia offline (SW escrito a mano, sin dependencias):
+  - **Navegaciones**: network-first con fallback al *shell* cacheado. Como la
+    app es SPA, con el shell + JS en caché **cualquier ruta ya visitada
+    funciona sin conexión**.
+  - **Assets** (`/assets`, `/icons`, favicon, manifest): cache-first (llevan
+    hash, son inmutables).
+  - **Datos/media de Supabase**: stale-while-revalidate.
+- El SW no se registra en `dev`; pruébalo con `npm run build && npm run serve`.
 
-## Deploy
+## Deploy (Vercel)
 
-Por defecto el target es **Vercel**. Para Cloudflare Workers:
+La app se compila en **modo SPA** (`spa: { enabled: true }` en
+`vite.config.ts`): TanStack Start prerenderiza un shell estático
+(`dist/client/_shell.html`) y la app enruta/hidrata en el cliente. El deploy es
+solo archivos estáticos, sin función serverless.
 
-```bash
-NUDOS_TARGET=cloudflare-module npm run build
-```
+`vercel.json` ya deja todo configurado:
 
-Recuerda definir `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` como variables
-de entorno en el proveedor de deploy.
+- `outputDirectory: dist/client`
+- rewrite catch-all → `/_shell.html` (para que rutas profundas como
+  `/nudos/nudo-plano` funcionen al recargar; Vercel sirve primero los archivos
+  estáticos que existan)
+
+> Si el proyecto en Vercel se creó antes con otros ajustes, borra cualquier
+> **Output Directory / Build Command** fijado en el dashboard para que tome los
+> de `vercel.json`.
+
+Define `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en las variables de
+entorno del proyecto en Vercel (si no, la app usa la semilla local).
+
+### Cloudflare Workers
+
+Requiere un adaptador/target específico para el handler `fetch`
+(`dist/server/server.js`). El modo SPA de arriba también puede servirse como
+sitio estático en Cloudflare Pages con el mismo `dist/client` y un rewrite al
+shell.
