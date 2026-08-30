@@ -1,0 +1,174 @@
+.knot-diagram {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.knot-diagram__canvas {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-width: 22rem;
+  margin-inline: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.knot-diagram__canvas svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Trazos ------------------------------------------------------------------- */
+.knot-path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+}
+
+.knot-path--cordon {
+  stroke-width: 8;
+}
+
+.knot-path--guia {
+  stroke-width: 3;
+  stroke-dasharray: 0.02 0.03; /* punteado sutil para los hilos guía */
+  stroke: var(--guia);
+}
+
+/* Pasos ya dibujados: quedan fijos */
+.knot-path--done {
+  stroke-dashoffset: 0;
+}
+.knot-path--done.knot-path--cordon {
+  stroke: var(--ink-soft);
+}
+
+/* Paso actual: se anima de oculto (offset 1) a dibujado (offset 0) */
+.knot-path--now.knot-path--cordon {
+  stroke: var(--accent);
+  stroke-dashoffset: 1;
+  animation: knot-draw 0.9s ease forwards;
+}
+.knot-path--now.knot-path--guia {
+  stroke-dashoffset: 0; /* las guías aparecen de inmediato */
+}
+
+@keyframes knot-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Accesibilidad: sin animación, mostramos el trazo ya dibujado */
+@media (prefers-reduced-motion: reduce) {
+  .knot-path--now.knot-path--cordon {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Pie / descripción -------------------------------------------------------- */
+.knot-diagram__caption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.knot-diagram__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.knot-diagram__step-count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.knot-diagram__replay {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.knot-diagram__replay:active {
+  background: var(--accent-soft);
+}
+
+.knot-diagram__desc {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--ink);
+  min-height: 3.2em; /* evita saltos de layout entre pasos */
+}
+
+/* Controles ---------------------------------------------------------------- */
+.knot-diagram__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.knot-btn {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 44px; /* objetivo táctil cómodo en móvil */
+}
+.knot-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.knot-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.knot-btn--primary:disabled {
+  background: var(--accent);
+}
+
+.knot-diagram__dots {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.knot-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  cursor: pointer;
+}
+.knot-dot.is-done {
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+}
+.knot-dot.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.3);
+}
